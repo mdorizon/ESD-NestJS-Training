@@ -1,13 +1,8 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { TimestampEntity } from 'src/Generic/timestamp.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('task')
-export class TaskEntity {
+export class TaskEntity extends TimestampEntity {
   @PrimaryGeneratedColumn()
   id: number;
   //
@@ -19,10 +14,4 @@ export class TaskEntity {
   //
   @Column({ type: 'boolean', default: false })
   completed: boolean;
-  //
-  @CreateDateColumn()
-  createdAt: Date;
-  //
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
