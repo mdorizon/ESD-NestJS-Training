@@ -10,11 +10,15 @@ import {
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
+  @ApiBody({
+    type: CreateTaskDto,
+  })
   @Post()
   create(@Body() createTaskDto: CreateTaskDto) {
     return this.taskService.create(createTaskDto);
@@ -30,6 +34,9 @@ export class TaskController {
     return this.taskService.findOne(+id);
   }
 
+  @ApiBody({
+    type: UpdateTaskDto,
+  })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.taskService.update(+id, updateTaskDto);
