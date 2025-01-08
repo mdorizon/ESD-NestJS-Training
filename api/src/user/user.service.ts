@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,18 +17,37 @@ export class UserService {
   }
 
   findAll(): Promise<UserEntity[]> {
-    return this.userRepository.find();
+    return this.userRepository.createQueryBuilder().getMany();
   }
 
-  findOne(id: number) {
-    return this.userRepository.findOneBy({ id });
+  async findOne(id: number): Promise<UserEntity> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :id', { id })
+      // exclude password
+      .addSelect('user.password', 'password')
+      .getOne();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update(id, updateUserDto);
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+    const user = await this.findOne(id);
+
+    const updateUser = {
+      ...user,
+      ...updateUserDto,
+    };
+
+    await this.userRepository.update(id, updateUser);
+
+    return updateUser;
   }
 
-  remove(id: number) {
-    return this.userRepository.delete(id);
+  async remove(id: number): Promise<any> {
+    await this.findOne(id);
+    return this.userRepository.softDelete(id);
   }
 }
