@@ -3,10 +3,14 @@ import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async signin(signinDto: SigninDto) {
     const user = await this.userService.findOneByEmail(signinDto.email);
@@ -18,7 +22,14 @@ export class AuthService {
     if (!isPasswordCorrect) {
       throw new UnauthorizedException('Invalid Credentials');
     }
-    return user;
+
+    const payload = {
+      id: user.id,
+    };
+
+    const access_token = await this.jwtService.sign(payload);
+
+    return { access_token };
   }
 
   async signup(signupDto: SignupDto) {
