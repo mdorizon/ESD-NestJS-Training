@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,7 +28,7 @@ export class UserService {
     return this.userRepository.createQueryBuilder().getMany();
   }
 
-  async findOne(id: number): Promise<UserEntity> {
+  async findOneById(id: number): Promise<UserEntity> {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .where('user.id = :id', { id })
@@ -37,8 +41,19 @@ export class UserService {
     return user;
   }
 
+  async findOneByEmail(email: string): Promise<UserEntity> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .getOne();
+    if (!user) {
+      throw new UnauthorizedException('Invalid Credentials');
+    }
+    return user;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
-    const user = await this.findOne(id);
+    const user = await this.findOneById(id);
 
     const updateUser = {
       ...user,
@@ -51,7 +66,7 @@ export class UserService {
   }
 
   async remove(id: number): Promise<any> {
-    await this.findOne(id);
+    await this.findOneById(id);
     return this.userRepository.softDelete(id);
   }
 }
